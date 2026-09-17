@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#f5f1ea"/>
+<title>Termo da Tropa</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="light"]{
+  --bg:#ede8df;--paper:#f5f1ea;--ink:#1c1208;--subtext:#7a6a50;
+  --line-big:#2a1f0a;--line-mini:#b0a898;
+  --correct:#5b8c4a;--present:#c9a227;--absent:#9a9186;
+  --tile-text:#f5f1ea;--key-bg:#e4ddcf;--key-text:#1c1208;
+}
+[data-theme="dark"]{
+  --bg:#1a1610;--paper:#231f18;--ink:#f0e8d8;--subtext:#8a7a65;
+  --line-big:#c8b89a;--line-mini:#5c4f3d;
+  --correct:#4a9d5c;--present:#d4a832;--absent:#3d3426;
+  --tile-text:#1a1610;--key-bg:#33291c;--key-text:#f0e8d8;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:'Caveat',cursive;display:flex;flex-direction:column;align-items:center;transition:background .3s,color .3s}
+.wrapper{width:100%;max-width:480px;padding:0 14px 30px;display:flex;flex-direction:column;align-items:center;gap:12px}
+header{width:100%;display:flex;align-items:center;justify-content:space-between;padding-top:14px}
+.title-wrap{text-align:center;flex:1}
+.title{font-size:clamp(1.6rem,7vw,2.3rem);font-weight:800;line-height:1.1}
+.subtitle{font-size:.85rem;color:var(--subtext)}
+.icon-btn{background:var(--paper);border:1.5px solid var(--line-mini);border-radius:4px;padding:6px 9px;font-size:.95rem;cursor:pointer;color:var(--subtext);font-family:'Caveat',cursive}
+.header-btns{display:flex;gap:6px}
+.tabs{width:100%;display:flex;border-bottom:2.5px solid var(--ink)}
+.tab-btn{flex:1;padding:8px 0;font-size:1.05rem;font-weight:700;background:none;border:none;color:var(--subtext);cursor:pointer;font-family:'Caveat',cursive;position:relative}
+.tab-btn.active{color:var(--ink)}
+.tab-btn.active::after{content:'';position:absolute;bottom:-2.5px;left:10%;width:80%;height:3px;background:var(--correct);border-radius:2px}
+.puzzle-num{font-size:.85rem;color:var(--subtext);text-align:center}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:4px;font-size:1rem;font-weight:700;font-family:'Caveat',cursive;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1}
+.board{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;width:100%;max-width:330px;margin:6px auto}
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.row.shake{animation:shake .4s}
+.tile{aspect-ratio:1/1;border:2px solid var(--line-mini);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;font-size:clamp(1.1rem,6vw,1.7rem);font-weight:800;color:var(--ink);text-transform:uppercase;background:transparent}
+.tile.filled{border-color:var(--line-big)}
+.tile.flip{animation:flip .5s ease both}
+.tile.correct{background:var(--correct);border-color:var(--correct);color:var(--tile-text)}
+.tile.present{background:var(--present);border-color:var(--present);color:var(--tile-text)}
+.tile.absent{background:var(--absent);border-color:var(--absent);color:var(--tile-text)}
+@keyframes flip{0%{transform:rotateX(0)}45%{transform:rotateX(90deg)}55%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
+.keyboard{display:flex;flex-direction:column;gap:6px;width:100%;max-width:480px}
+.krow{display:flex;gap:5px;justify-content:center}
+.key{flex:1;max-width:38px;height:46px;border:none;border-radius:4px;background:var(--key-bg);color:var(--key-text);font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;user-select:none}
+.key.wide{max-width:62px;font-size:.75rem}
+.key.correct{background:var(--correct);color:var(--tile-text)}
+.key.present{background:var(--present);color:var(--tile-text)}
+.key.absent{background:var(--absent);color:var(--tile-text);opacity:.75}
+.day-status{width:100%;text-align:center;font-size:.95rem;color:var(--subtext);display:flex;flex-direction:column;gap:4px;align-items:center}
+.countdown{font-size:1.4rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.btn{border:2px solid var(--ink);border-radius:3px;padding:9px 18px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Caveat',cursive;background:transparent;color:var(--ink)}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-share{background:var(--correct);color:#fff;border-color:var(--correct)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:600;padding:16px}
+.modal-box{background:var(--paper);border:2px solid var(--ink);border-radius:4px;padding:22px 20px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px;max-height:88vh;overflow-y:auto}
+.modal-box h2{font-size:1.25rem;font-weight:800;text-align:center}
+.modal-box p{font-size:.95rem;color:var(--subtext);line-height:1.5}
+.regra-linha{display:flex;align-items:center;gap:10px;font-size:.95rem;color:var(--subtext)}
+.regra-linha .tile{width:34px;height:34px;font-size:1.1rem;flex-shrink:0}
+.stats-grid{display:flex;justify-content:space-around;text-align:center}
+.stats-grid div{display:flex;flex-direction:column}
+.stats-grid b{font-size:1.5rem;font-weight:800}
+.stats-grid span{font-size:.72rem;color:var(--subtext)}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:.85rem}
+.bar-row .lbl{width:12px;text-align:right;font-weight:700}
+.bar-track{flex:1;background:var(--line-mini);border-radius:2px;overflow:hidden;height:18px}
+.bar-fill{background:var(--absent);height:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:5px;color:var(--paper);font-size:.72rem;font-weight:700;min-width:18px}
+.bar-fill.win{background:var(--correct)}
+.link-small{font-size:.8rem;color:var(--subtext);text-decoration:underline;cursor:pointer;text-align:center}
+.theme-picker{display:flex;gap:12px;justify-content:center}
+.theme-opt{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.theme-opt.active{border-color:var(--ink)}
+@media(max-width:360px){.key{height:42px}.key.wide{max-width:52px;font-size:.68rem}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+<header>
+  <div class="header-btns"><button class="icon-btn" id="btn-regras">❓</button></div>
+  <div class="title-wrap">
+    <div class="title">Termo da Tropa</div>
+    <div class="subtitle">Adivinhe a palavra em 6 tentativas</div>
+  </div>
+  <div class="header-btns">
+    <button class="icon-btn" id="btn-stats">📊</button>
+    <button class="icon-btn" id="btn-tema">🎨</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-diario" onclick="trocarModo('diario')">🗓️ Diário</button>
+  <button class="tab-btn" id="tab-treino" onclick="trocarModo('treino')">🎲 Treino</button>
+</div>
+<div class="puzzle-num" id="puzzle-num"></div>
+
+<div class="board" id="board"></div>
+
+<div class="day-status" id="day-status" style="display:none"></div>
+
+<div class="keyboard" id="keyboard"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL REGRAS -->
+<div class="modal-overlay" id="modal-regras" style="display:none">
+  <div class="modal-box">
+    <h2>❓ Como jogar</h2>
+    <p>Adivinhe a palavra secreta de <b>5 letras</b> em até <b>6 tentativas</b>. Depois de cada palpite, as peças mudam de cor:</p>
+    <div class="regra-linha"><div class="tile correct">T</div> a letra está certa e no lugar certo</div>
+    <div class="regra-linha"><div class="tile present">E</div> a letra existe, mas em outro lugar</div>
+    <div class="regra-linha"><div class="tile absent">X</div> a letra não existe na palavra</div>
+    <p>No modo <b>Diário</b> todo mundo joga a mesma palavra por dia. No modo <b>Treino</b> você joga palavras aleatórias sem limite.</p>
+    <button class="btn btn-primary" onclick="fecharModal('modal-regras')">Entendi!</button>
+  </div>
+</div>
+
+<!-- MODAL TEMA -->
+<div class="modal-overlay" id="modal-tema" style="display:none">
+  <div class="modal-box" style="align-items:center">
+    <h2>🎨 Escolha um tema</h2>
+    <div class="theme-picker">
+      <div class="theme-opt" style="background:#f5f1ea;border-color:#2a1f0a" onclick="setTema('light')"></div>
+      <div class="theme-opt" style="background:#1a1610;border-color:#c8b89a" onclick="setTema('dark')"></div>
+    </div>
+    <button class="btn btn-primary" onclick="fecharModal('modal-tema')">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL STATS / FIM DE JOGO -->
+<div class="modal-overlay" id="modal-fim" style="display:none">
+  <div class="modal-box">
+    <h2 id="fim-titulo">📊 Estatísticas</h2>
+    <div class="stats-grid" id="fim-stats"></div>
+    <div id="fim-distribuicao" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div id="fim-countdown-wrap" style="display:none;text-align:center;flex-direction:column;gap:4px">
+      <span style="font-size:.85rem;color:var(--subtext)">Próxima palavra em</span>
+      <div class="countdown" id="fim-countdown">00:00:00</div>
+    </div>
+    <div style="display:flex;gap:8px" id="fim-btns"></div>
+    <div class="link-small" id="fim-limpar">🗑️ Limpar estatísticas deste modo</div>
+    <button class="btn" onclick="fecharModal('modal-fim')">Fechar</button>
+  </div>
+</div>
+
+<script>
+/* ══ LISTA DE PALAVRAS (5 letras, sem acento) ══ */
+const PALAVRAS = ['AMIGO','ANDAR','ARROZ','BANCO','BARCO','BEIJO','BOLSA','BRAVO','BURRO','CAIXA','CALOR','CAMPO','CANTO','CARGA','CARRO','CARTA','CASAL','CERCA','CHUVA','CINCO','CLARO','COBRA','COISA','CORDA','CORPO','CORTE','CUSTO','DENTE','DOCES','DORME','DUPLA','FALAR','FAROL','FATOR','FEITO','FERRO','FESTA','FICAR','FILHO','FILME','FINAL','FIRME','FOLHA','FONTE','FORCA','FORNO','FORTE','FRACO','FRASE','FRUTA','FUGIR','FUMAR','FUNDO','GANHO','GELOS','GENTE','GIRAR','GORDO','GOSTO','GRAVE','GRITO','GRUPO','HOTEL','HUMOR','IDEIA','IGUAL','ILHAS','JANTA','JOGAR','JOGOS','JOVEM','JUNTO','JUSTO','LADOS','LAGOA','LARGO','LEGAL','LEITE','LENTE','LEVAR','LIMPO','LINDO','LIVRE','LIVRO','LOBOS','LOCAL','LONGE','LUGAR','LUTAR','MALAS','MANHA','MARES','MASSA','MATAR','MEIOS','MENOR','MENTE','MESAS','MESMO','METAL','METRO','MODOS','MOEDA','MOLHO','MONTE','MORTE','MOSCA','MOTOR','MUNDO','MUROS','MUSEU','NADAR','NARIZ','NATAL','NEGRO','NERVO','NINHO','NOITE','NOIVA','NOMES','NORTE','NOTAS','NOVAS','NOVOS','NUVEM','OLHAR','OLHOS','ONDAS','ORDEM','OSSOS','OUTRO','OUVIR','PADRE','PAGAR','PALCO','PANOS','PAPEL','PARAR','PARTE','PASSO','PAZES','PEDRA','PEIXE','PENAS','PERDA','PERTO','PESOS','PILHA','PISTA','PLACA','PLANO','POBRE','POEMA','POMBO','PONTE','PONTO','PORCO','PORTA','POSTO','POUCO','PRAIA','PRATO','PREGO','PRESA','PRETO','PRIMO','PROSA','PROVA','PULAR','PULSO','PUXAR','QUASE','RAIOS','RAIVA','RAPAZ','REGRA','RENDA','RESTO','RISCO','ROCHA','RODAS','ROLAR','ROSTO','ROTAS','ROUPA','RUMOR','SABER','SABOR','SACOS','SALAS','SALTO','SALVO','SANTO','SECOS','SEDES','SENDO','SENSO','SERRA','SINAL','SOBRA','SOGRO','SOLTO','SONHO','SORTE','SUAVE','SUCOS','SUJOS','SURDO','TALCO','TAPAR','TARDE','TECLA','TELAS','TEMPO','TERRA','TESTE','TIGRE','TOQUE','TORRE','TOTAL','TRAJE','TRAMA','TRAVE','TRIGO','TROCA','TURMA','UNHAS','USUAL','VALES','VAPOR','VARAL','VASOS','VELHO','VENTO','VERDE','VIDAS','VIDRO','VILAS','VINHO','VIRAR','VIVER','VIVOS','VOLTA','VOTOS','VOZES','ZEBRA','ZONAS','ANTES','ASSIM','ATUAL','ENTRE','ESTAR','EXATO','HOMEM','MUITO','OBTER','FALTA','FAVOR','FAZER','FECHA','FEITA','FEIRA','FENDA','FICHA','FILHA','FIRMA','FLUXO','FOCAR','FOLGA','FORAM','FUNDA','GALHO','GARRA','GASTA','GELAR','GERAL','GESTO','GLOBO','GOSTA','GOTAS','GRAXA','GRITA','HAVIA','HONRA','HORAS','IDOSO','ILESO','JUNTA','JUSTA','LATAS','LAVAR','LARGA','LETRA','LIGAR','LIMPA','LINDA','LINHA','LONGA','LOUCO','LUVAS'];
+
+const APP_VERSION = 'v1.0';
+const EPOCA = new Date(2024,0,1); // referência fixa p/ calcular o dia do desafio
+const HOJE_STR = ()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+
+function diaIndice(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const ep = new Date(EPOCA); ep.setHours(0,0,0,0);
+  return Math.floor((hoje-ep)/86400000);
+}
+function palavraDoDia(){ const i = ((diaIndice() % PALAVRAS.length)+PALAVRAS.length)%PALAVRAS.length; return PALAVRAS[i]; }
+
+/* ══ TEMA ══ */
+let temaAtual = localStorage.getItem('termo_tema') || 'light';
+function aplicarTema(t){
+  temaAtual = t==='dark' ? 'dark':'light';
+  document.documentElement.setAttribute('data-theme',temaAtual);
+  localStorage.setItem('termo_tema',temaAtual);
+  document.querySelectorAll('.theme-opt').forEach((el,i)=>el.classList.toggle('active', i===0?temaAtual==='light':temaAtual==='dark'));
+}
+function setTema(t){ aplicarTema(t); fecharModal('modal-tema'); }
+aplicarTema(temaAtual);
+
+/* ══ ESTADO ══ */
+let modoAtual = 'diario';
+let estadoDiario = null, estadoTreino = null;
+let bloqueado = false; // trava input durante animação
+
+function novoEstado(palavra){
+  return { palavra, tentativas:[], resultados:[], acabou:false, venceu:false, atual:'' };
+}
+
+function carregarDiario(){
+  const salvo = JSON.parse(localStorage.getItem('termo_progresso_diario')||'null');
+  const palavraHoje = palavraDoDia();
+  if(salvo && salvo.data===HOJE_STR() && salvo.palavra===palavraHoje){
+    estadoDiario = salvo.estado;
+  } else {
+    estadoDiario = novoEstado(palavraHoje);
+    salvarDiario();
+  }
+}
+function salvarDiario(){
+  localStorage.setItem('termo_progresso_diario', JSON.stringify({data:HOJE_STR(), palavra:estadoDiario.palavra, estado:estadoDiario}));
+}
+
+function carregarTreino(){
+  const salvo = JSON.parse(localStorage.getItem('termo_progresso_treino')||'null');
+  if(salvo && !salvo.acabou){ estadoTreino = salvo; }
+  else { estadoTreino = novoEstado(sortearPalavraTreino()); salvarTreino(); }
+}
+function salvarTreino(){ localStorage.setItem('termo_progresso_treino', JSON.stringify(estadoTreino)); }
+function sortearPalavraTreino(){
+  const ultima = estadoTreino ? estadoTreino.palavra : null;
+  let p; do{ p = PALAVRAS[Math.floor(Math.random()*PALAVRAS.length)]; }while(p===ultima && PALAVRAS.length>1);
+  return p;
+}
+function novaRodadaTreino(){
+  estadoTreino = novoEstado(sortearPalavraTreino());
+  salvarTreino();
+  renderTudo();
+}
+
+function estadoAtualObj(){ return modoAtual==='diario' ? estadoDiario : estadoTreino; }
+function salvarEstadoAtual(){ modoAtual==='diario' ? salvarDiario() : salvarTreino(); }
+
+/* ══ TROCA DE MODO ══ */
+function trocarModo(m){
+  modoAtual = m;
+  document.getElementById('tab-diario').classList.toggle('active', m==='diario');
+  document.getElementById('tab-treino').classList.toggle('active', m==='treino');
+  document.getElementById('puzzle-num').textContent = m==='diario' ? ('Desafio #'+(diaIndice()+1)) : 'Modo treino — palavra aleatória';
+  renderTudo();
+}
+
+/* ══ AVALIAÇÃO DO PALPITE ══ */
+function avaliarPalpite(guess, alvo){
+  const res = Array(5).fill('absent');
+  const alvoArr = alvo.split(''), guessArr = guess.split('');
+  for(let i=0;i<5;i++){ if(guessArr[i]===alvoArr[i]){ res[i]='correct'; alvoArr[i]=null; guessArr[i]=null; } }
+  for(let i=0;i<5;i++){
+    if(guessArr[i]===null) continue;
+    const idx = alvoArr.indexOf(guessArr[i]);
+    if(idx!==-1){ res[i]='present'; alvoArr[idx]=null; }
+  }
+  return res;
+}
+
+/* ══ TECLADO ══ */
+const LINHAS_TECLADO = [ 'QWERTYUIOP'.split(''), 'ASDFGHJKL'.split(''), ['ENTER','Z','X','C','V','B','N','M','BACK'] ];
+
+function montarTeclado(){
+  const kb = document.getElementById('keyboard'); kb.innerHTML='';
+  LINHAS_TECLADO.forEach(linha=>{
+    const row = document.createElement('div'); row.className='krow';
+    linha.forEach(k=>{
+      const btn = document.createElement('button'); btn.type='button';
+      btn.dataset.key = k;
+      if(k==='ENTER'){ btn.className='key wide'; btn.textContent='ENTER'; }
+      else if(k==='BACK'){ btn.className='key wide'; btn.textContent='⌫'; }
+      else { btn.className='key'; btn.textContent=k; }
+      btn.addEventListener('click',()=>tratarTecla(k));
+      row.appendChild(btn);
+    });
+    kb.appendChild(row);
+  });
+}
+function atualizarTeclado(){
+  const s = estadoAtualObj();
+  const melhor = {};
+  const prioridade = {absent:0,present:1,correct:2};
+  s.tentativas.forEach((t,ti)=>{
+    const r = s.resultados[ti];
+    t.split('').forEach((l,i)=>{
+      if(!melhor[l] || prioridade[r[i]]>prioridade[melhor[l]]) melhor[l]=r[i];
+    });
+  });
+  document.querySelectorAll('.key').forEach(btn=>{
+    const k = btn.dataset.key;
+    btn.classList.remove('correct','present','absent');
+    if(melhor[k]) btn.classList.add(melhor[k]);
+  });
+}
+
+/* ══ TABULEIRO ══ */
+function montarTabuleiro(){
+  const board = document.getElementById('board'); board.innerHTML='';
+  for(let r=0;r<6;r++){
+    const row = document.createElement('div'); row.className='row'; row.dataset.row=r;
+    for(let c=0;c<5;c++){ const tile=document.createElement('div'); tile.className='tile'; row.appendChild(tile); }
+    board.appendChild(row);
+  }
+}
+function renderTabuleiro(){
+  const s = estadoAtualObj();
+  const board = document.getElementById('board');
+  for(let r=0;r<6;r++){
+    const row = board.children[r];
+    const palavraLinha = r<s.tentativas.length ? s.tentativas[r] : (r===s.tentativas.length ? s.atual : '');
+    for(let c=0;c<5;c++){
+      const tile = row.children[c];
+      tile.className='tile';
+      tile.textContent = palavraLinha[c] || '';
+      if(palavraLinha[c] && r>=s.tentativas.length) tile.classList.add('filled');
+      if(r<s.tentativas.length) tile.classList.add(s.resultados[r][c]);
+    }
+  }
+}
+
+/* ══ ENTRADA ══ */
+function tratarTecla(k){
+  if(bloqueado) return;
+  const s = estadoAtualObj();
+  if(!s || s.acabou) return;
+  if(k==='ENTER'){ enviarTentativa(); return; }
+  if(k==='BACK'){ s.atual = s.atual.slice(0,-1); renderTabuleiro(); return; }
+  if(/^[A-Z]$/.test(k) && s.atual.length<5){ s.atual += k; renderTabuleiro(); }
+}
+document.addEventListener('keydown', e=>{
+  if(document.querySelector('.modal-overlay[style*="flex"]')) return;
+  const k = e.key.toUpperCase();
+  if(k==='ENTER') tratarTecla('ENTER');
+  else if(k==='BACKSPACE') tratarTecla('BACK');
+  else if(/^[A-Z]$/.test(k)) tratarTecla(k);
+});
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(mostrarToast._id);
+  mostrarToast._id = setTimeout(()=>t.classList.remove('show'),1400);
+}
+function shakeRow(r){
+  const row = document.getElementById('board').children[r];
+  row.classList.add('shake');
+  setTimeout(()=>row.classList.remove('shake'),400);
+}
+
+function enviarTentativa(){
+  const s = estadoAtualObj();
+  if(s.atual.length<5){ mostrarToast('Palavra incompleta'); shakeRow(s.tentativas.length); return; }
+  if(!PALAVRAS.includes(s.atual)){ mostrarToast('Palavra não encontrada na lista'); shakeRow(s.tentativas.length); return; }
+
+  const linhaIdx = s.tentativas.length;
+  const resultado = avaliarPalpite(s.atual, s.palavra);
+  s.tentativas.push(s.atual);
+  s.resultados.push(resultado);
+  const venceu = s.atual === s.palavra;
+  s.atual = '';
+
+  bloqueado = true;
+  const row = document.getElementById('board').children[linhaIdx];
+  for(let c=0;c<5;c++){
+    const tile = row.children[c];
+    setTimeout(()=>{
+      tile.classList.add('flip');
+      setTimeout(()=> tile.classList.add(resultado[c]), 250);
+    }, c*300);
+  }
+  setTimeout(()=>{
+    bloqueado = false;
+    atualizarTeclado();
+    if(venceu || s.tentativas.length>=6){
+      s.acabou = true; s.venceu = venceu;
+      salvarEstadoAtual();
+      finalizarJogo();
+    } else {
+      salvarEstadoAtual();
+    }
+  }, 4*300+550);
+}
+
+/* ══ ESTATÍSTICAS ══ */
+function statsKey(){ return 'termo_stats_'+modoAtual; }
+function obterStats(){
+  return JSON.parse(localStorage.getItem(statsKey())||'null') || {jogos:0,vitorias:0,streak:0,melhorStreak:0,distribuicao:[0,0,0,0,0,0]};
+}
+function atualizarStats(venceu, numTentativas){
+  const st = obterStats();
+  st.jogos++;
+  if(venceu){ st.vitorias++; st.streak++; st.melhorStreak=Math.max(st.melhorStreak,st.streak); st.distribuicao[numTentativas-1]++; }
+  else st.streak = 0;
+  localStorage.setItem(statsKey(), JSON.stringify(st));
+  return st;
+}
+function limparStats(){
+  if(!confirm('Apagar as estatísticas deste modo?')) return;
+  localStorage.removeItem(statsKey());
+  abrirStats();
+}
+
+function renderDistribuicao(dist, alvoLinha){
+  const max = Math.max(1,...dist);
+  return dist.map((v,i)=>{
+    const pct = Math.round((v/max)*100);
+    const win = alvoLinha===i+1;
+    return `<div class="bar-row"><span class="lbl">${i+1}</span><div class="bar-track"><div class="bar-fill${win?' win':''}" style="width:${v>0?Math.max(pct,10):0}%">${v>0?v:''}</div></div></div>`;
+  }).join('');
+}
+
+function abrirStats(){
+  const st = obterStats();
+  document.getElementById('fim-titulo').textContent = '📊 Estatísticas — ' + (modoAtual==='diario'?'Diário':'Treino');
+  const taxa = st.jogos>0 ? Math.round(st.vitorias/st.jogos*100) : 0;
+  document.getElementById('fim-stats').innerHTML = `
+    <div><b>${st.jogos}</b><span>jogos</span></div>
+    <div><b>${taxa}%</b><span>vitórias</span></div>
+    <div><b>${st.streak}</b><span>sequência</span></div>
+    <div><b>${st.melhorStreak}</b><span>melhor</span></div>`;
+  document.getElementById('fim-distribuicao').innerHTML = st.jogos>0 ? renderDistribuicao(st.distribuicao,0) : '<p style="text-align:center;font-size:.85rem;color:var(--subtext)">Jogue uma partida pra ver a distribuição.</p>';
+  document.getElementById('fim-countdown-wrap').style.display='none';
+  document.getElementById('fim-btns').innerHTML='';
+  document.getElementById('fim-limpar').style.display='block';
+  abrirModal('modal-fim');
+}
+
+let countdownInterval = null;
+function iniciarCountdown(){
+  clearInterval(countdownInterval);
+  const el = document.getElementById('fim-countdown');
+  function tick(){
+    const agora = new Date();
+    const meiaNoite = new Date(agora); meiaNoite.setHours(24,0,0,0);
+    const diff = Math.max(0, meiaNoite - agora);
+    const h = String(Math.floor(diff/3600000)).padStart(2,'0');
+    const m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    const s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    if(el) el.textContent = `${h}:${m}:${s}`;
+    if(diff<=0){ clearInterval(countdownInterval); }
+  }
+  tick(); countdownInterval = setInterval(tick,1000);
+}
+
+function gerarTextoCompartilhar(s){
+  const linhas = s.resultados.map(r=>r.map(c=>c==='correct'?'🟩':c==='present'?'🟨':'⬜').join('')).join('\n');
+  const titulo = modoAtual==='diario'
+    ? `Termo da Tropa #${diaIndice()+1} ${s.venceu ? s.tentativas.length : 'X'}/6`
+    : `Termo da Tropa (treino) ${s.venceu ? s.tentativas.length : 'X'}/6`;
+  return titulo+'\n'+linhas;
+}
+function compartilhar(){
+  const texto = gerarTextoCompartilhar(estadoAtualObj());
+  if(navigator.clipboard) navigator.clipboard.writeText(texto).then(()=>mostrarToast('Copiado! Cola onde quiser 📋')).catch(()=>alert(texto));
+  else alert(texto);
+}
+
+function finalizarJogo(){
+  const s = estadoAtualObj();
+  const st = atualizarStats(s.venceu, s.tentativas.length);
+  document.getElementById('fim-titulo').textContent = s.venceu ? '🏆 Você acertou!' : `😢 A palavra era ${s.palavra}`;
+  const taxa = st.jogos>0 ? Math.round(st.vitorias/st.jogos*100) : 0;
+  document.getElementById('fim-stats').innerHTML = `
+    <div><b>${st.jogos}</b><span>jogos</span></div>
+    <div><b>${taxa}%</b><span>vitórias</span></div>
+    <div><b>${st.streak}</b><span>sequência</span></div>
+    <div><b>${st.melhorStreak}</b><span>melhor</span></div>`;
+  document.getElementById('fim-distribuicao').innerHTML = renderDistribuicao(st.distribuicao, s.venceu ? s.tentativas.length : 0);
+  const btns = document.getElementById('fim-btns'); btns.innerHTML='';
+  const btnShare = document.createElement('button'); btnShare.className='btn btn-share'; btnShare.style.flex='1'; btnShare.textContent='📋 Compartilhar';
+  btnShare.onclick = compartilhar;
+  btns.appendChild(btnShare);
+  if(modoAtual==='treino'){
+    const btnNova = document.createElement('button'); btnNova.className='btn btn-primary'; btnNova.style.flex='1'; btnNova.textContent='🎲 Nova palavra';
+    btnNova.onclick = ()=>{ fecharModal('modal-fim'); novaRodadaTreino(); };
+    btns.appendChild(btnNova);
+  }
+  document.getElementById('fim-limpar').style.display='block';
+  if(modoAtual==='diario'){
+    document.getElementById('fim-countdown-wrap').style.display='flex';
+    iniciarCountdown();
+  } else {
+    document.getElementById('fim-countdown-wrap').style.display='none';
+  }
+  abrirModal('modal-fim');
+}
+
+/* ══ MODAIS ══ */
+function abrirModal(id){ document.getElementById(id).style.display='flex'; }
+function fecharModal(id){ document.getElementById(id).style.display='none'; if(id==='modal-fim') clearInterval(countdownInterval); }
+document.getElementById('btn-regras').addEventListener('click',()=>abrirModal('modal-regras'));
+document.getElementById('btn-tema').addEventListener('click',()=>abrirModal('modal-tema'));
+document.getElementById('btn-stats').addEventListener('click',abrirStats);
+document.getElementById('fim-limpar').addEventListener('click',limparStats);
+
+/* ══ RENDER GERAL ══ */
+function renderTudo(){
+  montarTabuleiro();
+  renderTabuleiro();
+  atualizarTeclado();
+  const s = estadoAtualObj();
+  if(s.acabou){
+    setTimeout(()=>{
+      for(let r=0;r<s.tentativas.length;r++){
+        for(let c=0;c<5;c++) document.getElementById('board').children[r].children[c].classList.add(s.resultados[r][c]);
+      }
+    },0);
+  }
+}
+
+/* ══ INIT ══ */
+montarTeclado();
+carregarDiario();
+carregarTreino();
+document.getElementById('puzzle-num').textContent = 'Desafio #'+(diaIndice()+1);
+renderTudo();
+if(!localStorage.getItem('termo_visto_regras')){
+  abrirModal('modal-regras');
+  localStorage.setItem('termo_visto_regras','1');
+}
+console.info('Termo da Tropa carregado:', APP_VERSION);
+</script>
+</body>
+</html>
