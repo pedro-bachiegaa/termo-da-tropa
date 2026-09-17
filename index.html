@@ -45,6 +45,7 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
 .tile.correct{background:var(--correct);border-color:var(--correct);color:var(--tile-text)}
 .tile.present{background:var(--present);border-color:var(--present);color:var(--tile-text)}
 .tile.absent{background:var(--absent);border-color:var(--absent);color:var(--tile-text)}
+.tile.cursor{box-shadow:0 0 0 2px var(--present) inset;border-color:var(--present)}
 @keyframes flip{0%{transform:rotateX(0)}45%{transform:rotateX(90deg)}55%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
 @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
 .keyboard{display:flex;flex-direction:column;gap:6px;width:100%;max-width:480px}
@@ -91,12 +92,14 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
 .code-display{background:transparent;border:2px dashed var(--line-big);border-radius:4px;padding:10px 16px;text-align:center;font-size:1.8rem;font-weight:800;letter-spacing:.3em;color:var(--present);cursor:pointer;user-select:all}
 .caos-status{width:100%;text-align:center;font-size:.9rem;color:var(--subtext);padding-bottom:6px;border-bottom:1.5px dashed var(--line-mini)}
 .caos-log{display:flex;flex-direction:column;gap:6px;width:100%;max-width:330px;margin:0 auto;max-height:320px;overflow-y:auto;padding:2px}
-.dica-bubble{width:100%;border-radius:6px;padding:8px 10px;font-size:.9rem;background:var(--key-bg);border-left:4px solid var(--present)}
-.dica-bubble.j2{border-left-color:var(--correct)}
-.dica-bubble .autor{display:block;font-size:.7rem;font-weight:700;color:var(--subtext);margin-bottom:1px}
 .caos-turno-bar{width:100%;text-align:center;font-size:1.05rem;font-weight:600;color:var(--ink)}
-.caos-dica-row{display:flex;gap:6px;width:100%;max-width:480px;transition:opacity .2s}
-.caos-dica-row input{flex:1;background:var(--paper);border:1.5px solid var(--line-mini);border-radius:4px;color:var(--ink);font-size:.95rem;padding:8px 10px;outline:none;font-family:'Caveat',cursive}
+.row.ao-vivo{animation:pulso-vivo 1.2s ease infinite}
+@keyframes pulso-vivo{0%,100%{opacity:1}50%{opacity:.55}}
+.caos-emoji-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;width:100%;max-width:420px;transition:opacity .2s}
+.emoji-react-btn{background:var(--paper);border:1.5px solid var(--line-mini);border-radius:6px;font-size:1.3rem;padding:6px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.reacao-flutuante{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font-size:3.4rem;pointer-events:none;z-index:700;opacity:0}
+.reacao-flutuante.show{animation:reacao-pop 1.6s ease forwards}
+@keyframes reacao-pop{0%{opacity:0;transform:translate(-50%,-40%) scale(.5)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}30%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-85%) scale(1)}}
 .btn-sair-caos{background:transparent;border:1.5px dashed var(--subtext);color:var(--subtext);border-radius:3px;padding:8px 24px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Caveat',cursive}
 #caos-keyboard{transition:opacity .2s}
 </style>
@@ -132,7 +135,7 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
 <div id="aba-caotico" style="width:100%;display:none;flex-direction:column;gap:14px;align-items:center">
 
   <div id="caos-nome" style="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center">
-    <p style="font-size:.95rem;color:var(--subtext);line-height:1.5">🤐 Vocês dividem o mesmo tabuleiro e revezam a vez. Só dá pra mandar uma dica no chat quando for a <b>sua</b> vez — mesmo que já saiba a palavra!</p>
+    <p style="font-size:.95rem;color:var(--subtext);line-height:1.5">🤐 Vocês dividem o mesmo tabuleiro e revezam a vez. Enquanto seu parceiro joga, você vê as letras aparecendo <b>ao vivo</b> — mas só pode reagir com emoji, nada de dar dica!</p>
     <input class="nome-input" type="text" id="caos-input-nome" maxlength="20" placeholder="Seu nome..."/>
     <button class="btn btn-primary" id="caos-btn-nome">Continuar →</button>
   </div>
@@ -165,14 +168,21 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
     <div class="caos-turno-bar" id="caos-turno-bar"></div>
     <div id="caos-fim-btns" style="display:flex;gap:8px;width:100%;max-width:330px"></div>
     <div class="keyboard" id="caos-keyboard"></div>
-    <div class="caos-dica-row" id="caos-dica-row">
-      <input type="text" id="caos-dica-input" maxlength="80" placeholder="Mandar uma dica..."/>
-      <button class="btn btn-secondary" id="caos-btn-dica">💬 Dica</button>
+    <div class="caos-emoji-row" id="caos-emoji-row">
+      <button class="emoji-react-btn" data-emoji="😱">😱</button>
+      <button class="emoji-react-btn" data-emoji="😂">😂</button>
+      <button class="emoji-react-btn" data-emoji="👀">👀</button>
+      <button class="emoji-react-btn" data-emoji="🔥">🔥</button>
+      <button class="emoji-react-btn" data-emoji="😭">😭</button>
+      <button class="emoji-react-btn" data-emoji="🤔">🤔</button>
+      <button class="emoji-react-btn" data-emoji="😤">😤</button>
+      <button class="emoji-react-btn" data-emoji="🎉">🎉</button>
     </div>
     <button class="btn-sair-caos" id="caos-btn-sair">✕ Sair da sala</button>
   </div>
 
 </div>
+<div class="reacao-flutuante" id="caos-reacao-flutuante"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -185,7 +195,7 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
     <div class="regra-linha"><div class="tile correct">T</div> a letra está certa e no lugar certo</div>
     <div class="regra-linha"><div class="tile present">E</div> a letra existe, mas em outro lugar</div>
     <div class="regra-linha"><div class="tile absent">X</div> a letra não existe na palavra</div>
-    <p>No modo <b>Diário</b> todo mundo joga a mesma palavra por dia. No modo <b>Treino</b> você joga palavras aleatórias sem limite. No modo <b>🤐 Caótico</b> você joga em dupla, online, revezando a vez — e só pode escrever no chat quando for a sua!</p>
+    <p>No modo <b>Diário</b> todo mundo joga a mesma palavra por dia. No modo <b>Treino</b> você joga palavras aleatórias sem limite. No modo <b>🤐 Caótico</b> você joga em dupla, online, revezando a vez — dá pra ver seu parceiro digitando em tempo real, mas só quem está observando pode reagir (só com emoji!).</p>
     <button class="btn btn-primary" onclick="fecharModal('modal-regras')">Entendi!</button>
   </div>
 </div>
@@ -280,14 +290,26 @@ let estadoDiario = null, estadoTreino = null;
 let bloqueado = false; // trava input durante animação
 
 function novoEstado(palavra){
-  return { palavra, tentativas:[], resultados:[], acabou:false, venceu:false, atual:'' };
+  return { palavra, tentativas:[], resultados:[], acabou:false, venceu:false, atualInput: criarInputVazio() };
+}
+// Migra saves antigos (campo "atual" era string) pro novo formato posicional.
+function migrarEstadoLocal(estado){
+  if(estado && !estado.atualInput){
+    estado.atualInput = criarInputVazio();
+    if(estado.atual){
+      estado.atual.split('').forEach((l,i)=>{ if(i<5) estado.atualInput.letras[i]=l; });
+      estado.atualInput.cursor = Math.min(estado.atual.length,4);
+    }
+    delete estado.atual;
+  }
+  return estado;
 }
 
 function carregarDiario(){
   const salvo = JSON.parse(localStorage.getItem('termo_progresso_diario')||'null');
   const palavraHoje = palavraDoDia();
   if(salvo && salvo.data===HOJE_STR() && salvo.palavra===palavraHoje){
-    estadoDiario = salvo.estado;
+    estadoDiario = migrarEstadoLocal(salvo.estado);
   } else {
     estadoDiario = novoEstado(palavraHoje);
     salvarDiario();
@@ -299,7 +321,7 @@ function salvarDiario(){
 
 function carregarTreino(){
   const salvo = JSON.parse(localStorage.getItem('termo_progresso_treino')||'null');
-  if(salvo && !salvo.acabou){ estadoTreino = salvo; }
+  if(salvo && !salvo.acabou){ estadoTreino = migrarEstadoLocal(salvo); }
   else { estadoTreino = novoEstado(sortearPalavraTreino()); salvarTreino(); }
 }
 function salvarTreino(){ localStorage.setItem('termo_progresso_treino', JSON.stringify(estadoTreino)); }
@@ -351,6 +373,23 @@ function avaliarPalpite(guess, alvo){
   return res;
 }
 
+/* ══ ENTRADA POSICIONAL — clica no quadrado que quiser e escreve fora de ordem ══ */
+function criarInputVazio(){ return { letras:['','','','',''], cursor:0 }; }
+function inputTexto(inp){ return inp.letras.join(''); }
+function inputCompleto(inp){ return inp.letras.every(l=>l); }
+function inputDigitar(inp, letra){
+  inp.letras[inp.cursor] = letra;
+  let prox = inp.cursor;
+  do{ prox = (prox+1)%5; }while(inp.letras[prox] && prox!==inp.cursor);
+  inp.cursor = prox;
+}
+function inputApagar(inp){
+  if(inp.letras[inp.cursor]){ inp.letras[inp.cursor]=''; }
+  else { inp.cursor = (inp.cursor+4)%5; inp.letras[inp.cursor]=''; }
+}
+function inputSelecionar(inp, idx){ inp.cursor = idx; }
+function inputLimpar(inp){ inp.letras=['','','','','']; inp.cursor=0; }
+
 /* ══ TECLADO ══ */
 const LINHAS_TECLADO = [ 'QWERTYUIOP'.split(''), 'ASDFGHJKL'.split(''), ['ENTER','Z','X','C','V','B','N','M','BACK'] ];
 
@@ -392,22 +431,40 @@ function montarTabuleiro(){
   const board = document.getElementById('board'); board.innerHTML='';
   for(let r=0;r<6;r++){
     const row = document.createElement('div'); row.className='row'; row.dataset.row=r;
-    for(let c=0;c<5;c++){ const tile=document.createElement('div'); tile.className='tile'; row.appendChild(tile); }
+    for(let c=0;c<5;c++){
+      const tile=document.createElement('div'); tile.className='tile';
+      tile.addEventListener('click', ()=>selecionarTile(r,c));
+      row.appendChild(tile);
+    }
     board.appendChild(row);
   }
+}
+function selecionarTile(r,c){
+  const s = estadoAtualObj();
+  if(bloqueado || !s || s.acabou || r!==s.tentativas.length) return;
+  inputSelecionar(s.atualInput, c);
+  renderTabuleiro();
 }
 function renderTabuleiro(){
   const s = estadoAtualObj();
   const board = document.getElementById('board');
+  const linhaAtualIdx = s.tentativas.length;
   for(let r=0;r<6;r++){
     const row = board.children[r];
-    const palavraLinha = r<s.tentativas.length ? s.tentativas[r] : (r===s.tentativas.length ? s.atual : '');
     for(let c=0;c<5;c++){
       const tile = row.children[c];
       tile.className='tile';
-      tile.textContent = palavraLinha[c] || '';
-      if(palavraLinha[c] && r>=s.tentativas.length) tile.classList.add('filled');
-      if(r<s.tentativas.length) tile.classList.add(s.resultados[r][c]);
+      if(r<s.tentativas.length){
+        tile.textContent = s.tentativas[r][c] || '';
+        tile.classList.add(s.resultados[r][c]);
+      } else if(r===linhaAtualIdx && !s.acabou){
+        const letra = s.atualInput.letras[c];
+        tile.textContent = letra || '';
+        if(letra) tile.classList.add('filled');
+        if(c===s.atualInput.cursor) tile.classList.add('cursor');
+      } else {
+        tile.textContent = '';
+      }
     }
   }
 }
@@ -418,8 +475,8 @@ function tratarTecla(k){
   const s = estadoAtualObj();
   if(!s || s.acabou) return;
   if(k==='ENTER'){ enviarTentativa(); return; }
-  if(k==='BACK'){ s.atual = s.atual.slice(0,-1); renderTabuleiro(); return; }
-  if(/^[A-Z]$/.test(k) && s.atual.length<5){ s.atual += k; renderTabuleiro(); }
+  if(k==='BACK'){ inputApagar(s.atualInput); renderTabuleiro(); return; }
+  if(/^[A-Z]$/.test(k)){ inputDigitar(s.atualInput, k); renderTabuleiro(); }
 }
 document.addEventListener('keydown', e=>{
   if(document.querySelector('.modal-overlay[style*="flex"]')) return;
@@ -450,15 +507,16 @@ function shakeRow(r){
 
 function enviarTentativa(){
   const s = estadoAtualObj();
-  if(s.atual.length<5){ mostrarToast('Palavra incompleta'); shakeRow(s.tentativas.length); return; }
-  if(!PALAVRAS_VALIDAS.has(s.atual)){ mostrarToast('Palavra não encontrada na lista'); shakeRow(s.tentativas.length); return; }
+  if(!inputCompleto(s.atualInput)){ mostrarToast('Palavra incompleta'); shakeRow(s.tentativas.length); return; }
+  const palavra = inputTexto(s.atualInput);
+  if(!PALAVRAS_VALIDAS.has(palavra)){ mostrarToast('Palavra não encontrada na lista'); shakeRow(s.tentativas.length); return; }
 
   const linhaIdx = s.tentativas.length;
-  const resultado = avaliarPalpite(s.atual, s.palavra);
-  s.tentativas.push(s.atual);
+  const resultado = avaliarPalpite(palavra, s.palavra);
+  s.tentativas.push(palavra);
   s.resultados.push(resultado);
-  const venceu = s.atual === s.palavra;
-  s.atual = '';
+  const venceu = palavra === s.palavra;
+  inputLimpar(s.atualInput);
 
   bloqueado = true;
   const row = document.getElementById('board').children[linhaIdx];
@@ -615,8 +673,11 @@ function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,
 const TIMEOUT_CAOS_MS = 5*60*1000;
 let meuNomeCaos = localStorage.getItem('termo_nome_caos') || null;
 let salaCaos = null, meuNumeroCaos = null, listenerCaos = null, estadoSalaCaos = null;
-let caosBloqueado = false, atualCaos = '';
+let caosBloqueado = false;
+let atualCaosInput = criarInputVazio();
+let caosUltimaReacaoId = null;
 let timerInatividadeCaos = null;
+let caosDigitandoTimeout = null;
 
 function sortearPalavraCaos(){ return PALAVRAS[Math.floor(Math.random()*PALAVRAS.length)]; }
 function novoEstadoSalaCaos(nome1){
@@ -624,12 +685,17 @@ function novoEstadoSalaCaos(nome1){
 }
 function caosNormalizarEstado(raw){
   const hist = Array.isArray(raw.historico) ? raw.historico : Object.values(raw.historico||{});
+  let digitando = null;
+  if(raw.digitando && raw.digitando.letras){
+    digitando = { letras: Array.isArray(raw.digitando.letras) ? raw.digitando.letras : Object.values(raw.digitando.letras), jogador: Number(raw.digitando.jogador)||0 };
+  }
   return {
     palavra: raw.palavra||'', nome1: raw.nome1||'', nome2: raw.nome2||'',
     jogador2Entrou: !!raw.jogador2Entrou, turno: Number(raw.turno)||1,
     historico: hist, gameOver: !!raw.gameOver,
     venceu: raw.venceu===true ? true : (raw.venceu===false ? false : null),
-    seq: Number(raw.seq)||0, ts: raw.ts||0
+    seq: Number(raw.seq)||0, ts: raw.ts||0,
+    digitando, reacao: raw.reacao || null
   };
 }
 function podeAgirCaos(){
@@ -730,7 +796,7 @@ function caosEscutarSala(codigo){
       const estavaJogando = document.getElementById('caos-jogo').style.display==='flex' || document.getElementById('caos-aguardando').style.display==='flex';
       caosPararTimer();
       if(listenerCaos){ listenerCaos(); listenerCaos=null; }
-      salaCaos=null; meuNumeroCaos=null; estadoSalaCaos=null; atualCaos='';
+      salaCaos=null; meuNumeroCaos=null; estadoSalaCaos=null; atualCaosInput=criarInputVazio(); caosUltimaReacaoId=null;
       caosShow('lobby');
       if(estavaJogando) alert('A sala foi encerrada (parceiro saiu ou ficou 5 min sem uso).');
       return;
@@ -754,7 +820,7 @@ async function caosSair(){
   caosPararTimer();
   if(listenerCaos){ listenerCaos(); listenerCaos=null; }
   if(salaCaos && dbCaos){ try{ await dbCaos.ref('caos-salas/'+salaCaos).remove(); }catch(e){} }
-  salaCaos=null; meuNumeroCaos=null; estadoSalaCaos=null; atualCaos='';
+  salaCaos=null; meuNumeroCaos=null; estadoSalaCaos=null; atualCaosInput=criarInputVazio(); caosUltimaReacaoId=null;
   caosShow('lobby');
 }
 document.getElementById('caos-btn-sair').addEventListener('click', caosSair);
@@ -792,16 +858,30 @@ function atualizarTecladoCaos(){
     if(melhor[k]) btn.classList.add(melhor[k]);
   });
 }
+function caosSincronizarDigitando(){
+  if(!salaCaos || !dbCaos) return;
+  clearTimeout(caosDigitandoTimeout);
+  caosDigitandoTimeout = setTimeout(()=>{
+    dbCaos.ref('caos-salas/'+salaCaos+'/digitando').set({letras: atualCaosInput.letras, jogador: meuNumeroCaos}).catch(()=>{});
+  }, 60);
+}
 function tratarTeclaCaos(k){
   if(caosBloqueado || !podeAgirCaos()) return;
   if(k==='ENTER'){ enviarChuteCaos(); return; }
-  if(k==='BACK'){ atualCaos = atualCaos.slice(0,-1); renderCaosLog(); return; }
-  if(/^[A-Z]$/.test(k) && atualCaos.length<5){ atualCaos += k; renderCaosLog(); }
+  if(k==='BACK'){ inputApagar(atualCaosInput); renderCaosLog(); caosSincronizarDigitando(); return; }
+  if(/^[A-Z]$/.test(k)){ inputDigitar(atualCaosInput, k); renderCaosLog(); caosSincronizarDigitando(); }
+}
+function caosSelecionarTile(c){
+  if(caosBloqueado || !podeAgirCaos()) return;
+  inputSelecionar(atualCaosInput, c);
+  renderCaosLog();
+  caosSincronizarDigitando();
 }
 
-/* ══ AÇÕES: CHUTE OU DICA ══ */
+/* ══ AÇÃO: CHUTE ══ */
 function caosProximoEstadoComEntrada(entrada){
   const novo = JSON.parse(JSON.stringify(estadoSalaCaos));
+  delete novo.digitando; delete novo.reacao;
   novo.historico.push(entrada);
   novo.turno = meuNumeroCaos===1 ? 2 : 1;
   novo.seq = (estadoSalaCaos.seq||0) + 1;
@@ -818,28 +898,37 @@ function caosSalvarEstado(novo){
 
 function enviarChuteCaos(){
   if(caosBloqueado || !podeAgirCaos()) return;
-  if(atualCaos.length<5){ mostrarToast('Palavra incompleta'); return; }
-  if(!PALAVRAS_VALIDAS.has(atualCaos)){ mostrarToast('Palavra não encontrada na lista'); return; }
-  const resultado = avaliarPalpite(atualCaos, estadoSalaCaos.palavra);
-  const venceu = atualCaos === estadoSalaCaos.palavra;
-  const novo = caosProximoEstadoComEntrada({jogador:meuNumeroCaos, tipo:'chute', valor:atualCaos, resultado});
+  if(!inputCompleto(atualCaosInput)){ mostrarToast('Palavra incompleta'); return; }
+  clearTimeout(caosDigitandoTimeout); // evita que uma sincronização atrasada sobrescreva o estado após o envio
+  const palavra = inputTexto(atualCaosInput);
+  if(!PALAVRAS_VALIDAS.has(palavra)){ mostrarToast('Palavra não encontrada na lista'); return; }
+  const resultado = avaliarPalpite(palavra, estadoSalaCaos.palavra);
+  const venceu = palavra === estadoSalaCaos.palavra;
+  const novo = caosProximoEstadoComEntrada({jogador:meuNumeroCaos, tipo:'chute', valor:palavra, resultado});
   if(venceu){ novo.gameOver=true; novo.venceu=true; }
   else if(novo.historico.length>=6){ novo.gameOver=true; novo.venceu=false; }
-  atualCaos = '';
+  inputLimpar(atualCaosInput);
   caosSalvarEstado(novo);
 }
-function enviarDicaCaos(){
-  if(caosBloqueado || !podeAgirCaos()) return;
-  const input = document.getElementById('caos-dica-input');
-  const texto = input.value.trim();
-  if(!texto){ mostrarToast('Escreva uma dica antes de enviar'); return; }
-  const novo = caosProximoEstadoComEntrada({jogador:meuNumeroCaos, tipo:'dica', valor:texto});
-  if(novo.historico.length>=6){ novo.gameOver=true; novo.venceu=false; }
-  input.value=''; atualCaos='';
-  caosSalvarEstado(novo);
+
+/* ══ REAÇÕES (só quem está observando pode mandar, a qualquer momento) ══ */
+function podeReagirCaos(){
+  return !!(estadoSalaCaos && estadoSalaCaos.jogador2Entrou && !estadoSalaCaos.gameOver && estadoSalaCaos.turno!==meuNumeroCaos);
 }
-document.getElementById('caos-btn-dica').addEventListener('click', enviarDicaCaos);
-document.getElementById('caos-dica-input').addEventListener('keydown', e=>{ if(e.key==='Enter') enviarDicaCaos(); });
+function enviarReacaoCaos(emoji){
+  if(!podeReagirCaos() || !salaCaos || !dbCaos) return;
+  const reacao = { emoji, jogador: meuNumeroCaos, id: Date.now()+'_'+Math.random().toString(36).slice(2,7) };
+  dbCaos.ref('caos-salas/'+salaCaos+'/reacao').set(reacao).catch(()=>{});
+}
+document.querySelectorAll('.emoji-react-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>enviarReacaoCaos(btn.dataset.emoji));
+});
+function caosMostrarReacaoFlutuante(reacao){
+  const el = document.getElementById('caos-reacao-flutuante');
+  el.textContent = reacao.emoji;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1600);
+}
 
 function caosNovaRodada(){
   if(!salaCaos || meuNumeroCaos!==1) return;
@@ -847,6 +936,7 @@ function caosNovaRodada(){
   novo.nome2 = estadoSalaCaos.nome2;
   novo.jogador2Entrou = true;
   novo.seq = (estadoSalaCaos.seq||0) + 1;
+  atualCaosInput = criarInputVazio();
   dbCaos.ref('caos-salas/'+salaCaos).set(novo);
 }
 
@@ -855,27 +945,24 @@ function renderCaosLog(){
   const s = estadoSalaCaos;
   const log = document.getElementById('caos-log');
   log.innerHTML = '';
-  s.historico.forEach(entry=>{
-    if(entry.tipo==='chute'){
-      const row = document.createElement('div'); row.className='row';
-      entry.valor.split('').forEach((l,i)=>{
-        const tile = document.createElement('div'); tile.className='tile '+entry.resultado[i]; tile.textContent=l;
-        row.appendChild(tile);
-      });
-      log.appendChild(row);
-    } else {
-      const bubble = document.createElement('div');
-      bubble.className = 'dica-bubble'+(entry.jogador===2?' j2':'');
-      const nomeAutor = entry.jogador===1 ? s.nome1 : s.nome2;
-      bubble.innerHTML = `<span class="autor">💬 ${escapeHtml(nomeAutor)}</span>${escapeHtml(entry.valor)}`;
-      log.appendChild(bubble);
-    }
-  });
-  if(!s.gameOver && s.turno===meuNumeroCaos){
+  s.historico.filter(e=>e.tipo==='chute').forEach(entry=>{
     const row = document.createElement('div'); row.className='row';
+    entry.valor.split('').forEach((l,i)=>{
+      const tile = document.createElement('div'); tile.className='tile '+entry.resultado[i]; tile.textContent=l;
+      row.appendChild(tile);
+    });
+    log.appendChild(row);
+  });
+  if(!s.gameOver){
+    const meuTurno = s.turno===meuNumeroCaos;
+    const row = document.createElement('div'); row.className='row ao-vivo';
+    const letras = meuTurno ? atualCaosInput.letras : (s.digitando && s.digitando.jogador===s.turno ? s.digitando.letras : ['','','','','']);
+    const cursor = meuTurno ? atualCaosInput.cursor : -1;
     for(let i=0;i<5;i++){
-      const tile = document.createElement('div'); tile.className='tile'+(atualCaos[i]?' filled':'');
-      tile.textContent = atualCaos[i]||'';
+      const tile = document.createElement('div'); tile.className='tile'+(letras[i]?' filled':'');
+      tile.textContent = letras[i]||'';
+      if(i===cursor) tile.classList.add('cursor');
+      if(meuTurno) tile.addEventListener('click', ()=>caosSelecionarTile(i));
       row.appendChild(tile);
     }
     log.appendChild(row);
@@ -888,16 +975,22 @@ function caosRenderTudo(){
   renderCaosLog();
   atualizarTecladoCaos();
   const bar = document.getElementById('caos-turno-bar');
-  const dicaRow = document.getElementById('caos-dica-row');
+  const emojiRow = document.getElementById('caos-emoji-row');
   const kb = document.getElementById('caos-keyboard');
   const fimBtns = document.getElementById('caos-fim-btns');
   const restantes = 6 - s.historico.length;
   fimBtns.innerHTML = '';
+
+  if(s.reacao && s.reacao.id!==caosUltimaReacaoId){
+    caosUltimaReacaoId = s.reacao.id;
+    caosMostrarReacaoFlutuante(s.reacao);
+  }
+
   if(s.gameOver){
     bar.innerHTML = s.venceu
       ? `🏆 Acertaram juntos! A palavra era <b>${escapeHtml(s.palavra)}</b>`
       : `😢 Acabaram as tentativas. A palavra era <b>${escapeHtml(s.palavra)}</b>`;
-    dicaRow.style.opacity='.4'; dicaRow.style.pointerEvents='none';
+    emojiRow.style.opacity='.4'; emojiRow.style.pointerEvents='none';
     kb.style.opacity='.4'; kb.style.pointerEvents='none';
     if(meuNumeroCaos===1){
       const btnR = document.createElement('button'); btnR.className='btn btn-primary'; btnR.style.flex='1'; btnR.textContent='🔄 Nova rodada';
@@ -908,10 +1001,10 @@ function caosRenderTudo(){
     const meuTurno = s.turno===meuNumeroCaos;
     const nomeOutro = meuNumeroCaos===1 ? s.nome2 : s.nome1;
     bar.innerHTML = meuTurno
-      ? `🎯 Sua vez! Chute ou mande uma dica — restam ${restantes}/6`
-      : `🤐 Vez de <b>${escapeHtml(nomeOutro)}</b>... aguarde (restam ${restantes}/6)`;
-    dicaRow.style.opacity = meuTurno ? '1' : '.4';
-    dicaRow.style.pointerEvents = meuTurno ? 'auto' : 'none';
+      ? `🎯 Sua vez! Chute uma palavra — restam ${restantes}/6`
+      : `👀 Vez de <b>${escapeHtml(nomeOutro)}</b> — observando... (restam ${restantes}/6)`;
+    emojiRow.style.opacity = meuTurno ? '.4' : '1';
+    emojiRow.style.pointerEvents = meuTurno ? 'none' : 'auto';
     kb.style.opacity = meuTurno ? '1' : '.4';
     kb.style.pointerEvents = meuTurno ? 'auto' : 'none';
   }
