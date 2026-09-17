@@ -79,6 +79,26 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
 .theme-opt{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}
 .theme-opt.active{border-color:var(--ink)}
 @media(max-width:360px){.key{height:42px}.key.wide{max-width:52px;font-size:.68rem}}
+.caos-card{background:var(--paper);border:1.5px solid var(--line-mini);border-radius:4px;padding:14px 16px;width:100%;display:flex;flex-direction:column;gap:8px}
+.caos-card h3{font-size:1.05rem;font-weight:700}
+.caos-card p{font-size:.85rem;color:var(--subtext)}
+.nome-input{width:100%;background:transparent;border:none;border-bottom:2px solid var(--line-big);color:var(--ink);font-size:1.15rem;font-weight:600;padding:8px 4px;outline:none;font-family:'Caveat',cursive;text-align:center}
+.btn-secondary{background:transparent;border:1.5px solid var(--line-mini);color:var(--subtext)}
+.input-row{display:flex;gap:8px;width:100%}
+.input-row input{flex:1;background:transparent;border:none;border-bottom:2px solid var(--line-big);color:var(--ink);font-size:1.05rem;font-weight:700;padding:8px 4px;letter-spacing:.15em;text-transform:uppercase;outline:none;font-family:'Caveat',cursive;text-align:center}
+.spinner{width:28px;height:28px;border:3px solid var(--line-mini);border-top-color:var(--correct);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.code-display{background:transparent;border:2px dashed var(--line-big);border-radius:4px;padding:10px 16px;text-align:center;font-size:1.8rem;font-weight:800;letter-spacing:.3em;color:var(--present);cursor:pointer;user-select:all}
+.caos-status{width:100%;text-align:center;font-size:.9rem;color:var(--subtext);padding-bottom:6px;border-bottom:1.5px dashed var(--line-mini)}
+.caos-log{display:flex;flex-direction:column;gap:6px;width:100%;max-width:330px;margin:0 auto;max-height:320px;overflow-y:auto;padding:2px}
+.dica-bubble{width:100%;border-radius:6px;padding:8px 10px;font-size:.9rem;background:var(--key-bg);border-left:4px solid var(--present)}
+.dica-bubble.j2{border-left-color:var(--correct)}
+.dica-bubble .autor{display:block;font-size:.7rem;font-weight:700;color:var(--subtext);margin-bottom:1px}
+.caos-turno-bar{width:100%;text-align:center;font-size:1.05rem;font-weight:600;color:var(--ink)}
+.caos-dica-row{display:flex;gap:6px;width:100%;max-width:480px;transition:opacity .2s}
+.caos-dica-row input{flex:1;background:var(--paper);border:1.5px solid var(--line-mini);border-radius:4px;color:var(--ink);font-size:.95rem;padding:8px 10px;outline:none;font-family:'Caveat',cursive}
+.btn-sair-caos{background:transparent;border:1.5px dashed var(--subtext);color:var(--subtext);border-radius:3px;padding:8px 24px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Caveat',cursive}
+#caos-keyboard{transition:opacity .2s}
 </style>
 </head>
 <body>
@@ -98,6 +118,7 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
 <div class="tabs">
   <button class="tab-btn active" id="tab-diario" onclick="trocarModo('diario')">🗓️ Diário</button>
   <button class="tab-btn" id="tab-treino" onclick="trocarModo('treino')">🎲 Treino</button>
+  <button class="tab-btn" id="tab-caotico" onclick="trocarModo('caotico')">🤐 Caótico</button>
 </div>
 <div class="puzzle-num" id="puzzle-num"></div>
 
@@ -106,6 +127,52 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
 <div class="day-status" id="day-status" style="display:none"></div>
 
 <div class="keyboard" id="keyboard"></div>
+
+<!-- ══ MODO CAÓTICO (online, 2 jogadores, chat travado fora do seu turno) ══ -->
+<div id="aba-caotico" style="width:100%;display:none;flex-direction:column;gap:14px;align-items:center">
+
+  <div id="caos-nome" style="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center">
+    <p style="font-size:.95rem;color:var(--subtext);line-height:1.5">🤐 Vocês dividem o mesmo tabuleiro e revezam a vez. Só dá pra mandar uma dica no chat quando for a <b>sua</b> vez — mesmo que já saiba a palavra!</p>
+    <input class="nome-input" type="text" id="caos-input-nome" maxlength="20" placeholder="Seu nome..."/>
+    <button class="btn btn-primary" id="caos-btn-nome">Continuar →</button>
+  </div>
+
+  <div id="caos-lobby" style="width:100%;display:none;flex-direction:column;gap:12px;align-items:center">
+    <p style="width:100%;font-size:.85rem;color:var(--subtext);text-align:center">Olá, <b id="caos-nome-display" style="color:var(--ink)"></b>! <span class="link-small" onclick="caosTrocarNome()">trocar nome</span></p>
+    <div class="caos-card">
+      <h3>🎮 Criar sala</h3>
+      <p>Você joga primeiro.</p>
+      <button class="btn btn-primary" id="caos-btn-criar">Criar sala</button>
+    </div>
+    <div class="caos-card">
+      <h3>🔗 Entrar numa sala</h3>
+      <p>Digite o código de 4 letras que seu parceiro te mandou.</p>
+      <div class="input-row"><input type="text" id="caos-input-codigo" maxlength="4" placeholder="Ex: KXQZ"/><button class="btn btn-secondary" id="caos-btn-entrar">Entrar</button></div>
+    </div>
+  </div>
+
+  <div id="caos-aguardando" style="width:100%;display:none;flex-direction:column;gap:12px;align-items:center">
+    <div class="spinner"></div>
+    <p id="caos-aguardando-msg" style="font-size:.9rem;color:var(--subtext);text-align:center"></p>
+    <div class="code-display" id="caos-codigo-display"></div>
+    <p style="font-size:.8rem;color:var(--subtext)">Toque no código pra copiar</p>
+    <button class="btn btn-secondary" id="caos-btn-cancelar">Cancelar</button>
+  </div>
+
+  <div id="caos-jogo" style="width:100%;display:none;flex-direction:column;gap:10px;align-items:center">
+    <div class="caos-status" id="caos-status"></div>
+    <div class="caos-log" id="caos-log"></div>
+    <div class="caos-turno-bar" id="caos-turno-bar"></div>
+    <div id="caos-fim-btns" style="display:flex;gap:8px;width:100%;max-width:330px"></div>
+    <div class="keyboard" id="caos-keyboard"></div>
+    <div class="caos-dica-row" id="caos-dica-row">
+      <input type="text" id="caos-dica-input" maxlength="80" placeholder="Mandar uma dica..."/>
+      <button class="btn btn-secondary" id="caos-btn-dica">💬 Dica</button>
+    </div>
+    <button class="btn-sair-caos" id="caos-btn-sair">✕ Sair da sala</button>
+  </div>
+
+</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -118,7 +185,7 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
     <div class="regra-linha"><div class="tile correct">T</div> a letra está certa e no lugar certo</div>
     <div class="regra-linha"><div class="tile present">E</div> a letra existe, mas em outro lugar</div>
     <div class="regra-linha"><div class="tile absent">X</div> a letra não existe na palavra</div>
-    <p>No modo <b>Diário</b> todo mundo joga a mesma palavra por dia. No modo <b>Treino</b> você joga palavras aleatórias sem limite.</p>
+    <p>No modo <b>Diário</b> todo mundo joga a mesma palavra por dia. No modo <b>Treino</b> você joga palavras aleatórias sem limite. No modo <b>🤐 Caótico</b> você joga em dupla, online, revezando a vez — e só pode escrever no chat quando for a sua!</p>
     <button class="btn btn-primary" onclick="fecharModal('modal-regras')">Entendi!</button>
   </div>
 </div>
@@ -151,7 +218,33 @@ header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
+let dbCaos = null, firebaseCaosDisponivel = false;
+try{
+  if(window.firebase && typeof firebase.initializeApp === 'function'){
+    firebase.initializeApp({
+      apiKey:"AIzaSyDiAXiXeO2Q4iMQ51IlZDbLCQmzLhRrjEQ",
+      authDomain:"termodatropa.firebaseapp.com",
+      databaseURL:"https://termodatropa-default-rtdb.firebaseio.com",
+      projectId:"termodatropa",
+      storageBucket:"termodatropa.firebasestorage.app",
+      messagingSenderId:"778926942498",
+      appId:"1:778926942498:web:751dc4bb2ce06d5d5c1d7b"
+    });
+    dbCaos = firebase.database();
+    firebaseCaosDisponivel = true;
+  } else {
+    console.warn('Firebase não carregou. Diário e Treino continuam funcionando.');
+  }
+}catch(e){ console.error('Erro ao iniciar Firebase do modo Caótico:', e); }
+function precisaFirebaseCaos(avisar=true){
+  if(firebaseCaosDisponivel && dbCaos) return true;
+  if(avisar) alert('O modo Caótico (online) não carregou agora. Diário e Treino continuam funcionando normalmente.');
+  return false;
+}
+
 /* ══ LISTA DE PALAVRAS (5 letras, sem acento) ══ */
 const PALAVRAS = ['AMIGO','ANDAR','ARROZ','BANCO','BARCO','BEIJO','BOLSA','BRAVO','BURRO','CAIXA','CALOR','CAMPO','CANTO','CARGA','CARRO','CARTA','CASAL','CERCA','CHUVA','CINCO','CLARO','COBRA','COISA','CORDA','CORPO','CORTE','CUSTO','DENTE','DOCES','DORME','DUPLA','FALAR','FAROL','FATOR','FEITO','FERRO','FESTA','FICAR','FILHO','FILME','FINAL','FIRME','FOLHA','FONTE','FORCA','FORNO','FORTE','FRACO','FRASE','FRUTA','FUGIR','FUMAR','FUNDO','GANHO','GELOS','GENTE','GIRAR','GORDO','GOSTO','GRAVE','GRITO','GRUPO','HOTEL','HUMOR','IDEIA','IGUAL','ILHAS','JANTA','JOGAR','JOGOS','JOVEM','JUNTO','JUSTO','LADOS','LAGOA','LARGO','LEGAL','LEITE','LENTE','LEVAR','LIMPO','LINDO','LIVRE','LIVRO','LOBOS','LOCAL','LONGE','LUGAR','LUTAR','MALAS','MANHA','MARES','MASSA','MATAR','MEIOS','MENOR','MENTE','MESAS','MESMO','METAL','METRO','MODOS','MOEDA','MOLHO','MONTE','MORTE','MOSCA','MOTOR','MUNDO','MUROS','MUSEU','NADAR','NARIZ','NATAL','NEGRO','NERVO','NINHO','NOITE','NOIVA','NOMES','NORTE','NOTAS','NOVAS','NOVOS','NUVEM','OLHAR','OLHOS','ONDAS','ORDEM','OSSOS','OUTRO','OUVIR','PADRE','PAGAR','PALCO','PANOS','PAPEL','PARAR','PARTE','PASSO','PAZES','PEDRA','PEIXE','PENAS','PERDA','PERTO','PESOS','PILHA','PISTA','PLACA','PLANO','POBRE','POEMA','POMBO','PONTE','PONTO','PORCO','PORTA','POSTO','POUCO','PRAIA','PRATO','PREGO','PRESA','PRETO','PRIMO','PROSA','PROVA','PULAR','PULSO','PUXAR','QUASE','RAIOS','RAIVA','RAPAZ','REGRA','RENDA','RESTO','RISCO','ROCHA','RODAS','ROLAR','ROSTO','ROTAS','ROUPA','RUMOR','SABER','SABOR','SACOS','SALAS','SALTO','SALVO','SANTO','SECOS','SEDES','SENDO','SENSO','SERRA','SINAL','SOBRA','SOGRO','SOLTO','SONHO','SORTE','SUAVE','SUCOS','SUJOS','SURDO','TALCO','TAPAR','TARDE','TECLA','TELAS','TEMPO','TERRA','TESTE','TIGRE','TOQUE','TORRE','TOTAL','TRAJE','TRAMA','TRAVE','TRIGO','TROCA','TURMA','UNHAS','USUAL','VALES','VAPOR','VARAL','VASOS','VELHO','VENTO','VERDE','VIDAS','VIDRO','VILAS','VINHO','VIRAR','VIVER','VIVOS','VOLTA','VOTOS','VOZES','ZEBRA','ZONAS','ANTES','ASSIM','ATUAL','ENTRE','ESTAR','EXATO','HOMEM','MUITO','OBTER','FALTA','FAVOR','FAZER','FECHA','FEITA','FEIRA','FENDA','FICHA','FILHA','FIRMA','FLUXO','FOCAR','FOLGA','FORAM','FUNDA','GALHO','GARRA','GASTA','GELAR','GERAL','GESTO','GLOBO','GOSTA','GOTAS','GRAXA','GRITA','HAVIA','HONRA','HORAS','IDOSO','ILESO','JUNTA','JUSTA','LATAS','LAVAR','LARGA','LETRA','LIGAR','LIMPA','LINDA','LINHA','LONGA','LOUCO','LUVAS','ABRIL','ABRIR','ACASO','ACENA','ACESO','ACHAR','ACIMA','ACUSA','ADEUS','ADIAR','ADOTA','AFETO','AGIDO','AGORA','AGUDO','AJUDA','ALADO','ALEGA','ALGUM','ALMAS','ALTAR','ALTOS','ALUNO','ALVOS','AMADO','AMIGA','AMPLO','ANGRA','ANIMA','ANJOS','ANUAL','APAGA','APELO','APOIO','APTOS','ARADO','ARARA','AREIA','ARMAR','ARMAS','ARTES','ASPAS','ASSAR','ASSOU','ATACA','ATADO','ATIVA','ATRAI','ATRIZ','AULAS','AUTOR','AVISA','AVISO','AZEDO','BACIA','BAILE','BAIXA','BAIXO','BALAS','BALDE','BANDO','BANHO','BARBA','BARDO','BARRA','BASES','BASTA','BATER','BATOM','BEBER','BEBEU','BEIRA','BICHO','BICOS','BLOCO','BOATO','BOCAS','BODAS','BOLAS','BOLOS','BONDE','BONES','BORDA','BOTAS','BRASA','BRAVA','BREVE','BRIGA','BRUTO','BURLA','BUSCA','CACOS','CAFES','CALDA','CALDO','CALMA','CALOS','CAMAS','CANAL','CANOA','CANSA','CANTA','CAPAS','CAPAZ','CAPIM','CARAS','CARDO','CARNE','CASAS','CASCA','CASCO','CASOS','CASTA','CAUSA','CEDER','CEGOS','CELAS','CENAS','CENTO','CERTA','CERTO','CESTA','CESTO','CHAVE','CHEFE','CHEIA','CHEIO','CHUTE','CINZA','CIRCO','CITAR','CLIMA','CLUBE','COBRE','COCHO','COLAR','COMEU','COMIA','COMUM','CONTA','COPOS','COROA','COSTA','COURO','CREME','CRIME','CULPA','CURTA','CURTO','CUSTA','DADOS','DANOS','DEBIL','DEDOS','DEITA','DEIXA','DELAS','DELES','DENSO','DEVEM','DEVIA','DIABO','DIETA','DIREI','DISSE','DITOS','DOBRA','DOBRO','DOCAS','DOIDO','DONAS','DONOS','DORES','DUELO','DUNAS','DUROS','ECOAR','EDUCA','EIXOS','ELEGE','ELITE','ENCHE','ENFIM','ENTES','ENVIA','ERGUE','ERRAR','ESSAS','ESSES','ESTES','ESTOU','ETAPA','EXAME','EXIGE','EXPOR','EXTRA','FACAS','FADAS','FAIXA','FALAS','FALHA','FALSO','FARDA','FARTO','FATOS','FEBRE','FEIOS','FELIZ','FERAS','FERIR','FERIU','FIADO','FIBRA','FICAM','FIGOS','FILAS','FINOS','FISCO','FIXAR','FIXOS','FOCAS','FOCOS','FOFOS','FOGOS','FOSSO','FOTOS','FRIAS','FRIOS','FRITA','FRITO','FUGAS','FUGIU','FUNDE','FURAR','FUROS','GADOS','GARFO','GASES','GASTO','GATOS','GEMER','GENRO','GESSO','GOLES','GOLPE','GORDA','GRATO','GRETA','GRIFO','GUIAR','HAVER','HERDA','HORTA','IATES','IDEAL','IDOSA','ILUDE','INFLA','IRADO','JARRA','JEITO','JULGA','JUROS','LADRA','LAGOS','LAJES','LAMAS','LANCE','LARES','LASCA','LATIM','LAVOU','LEITO','LENDA','LENHA','LEVOU','LIGAS','LIMAS','LIMOS','LISTA','LOGRO','LOJAS','LONGO','LOTES','LOUCA','LOURO','LUTAS','MACHO','MADRE','MALHA','MANDA','MANIA','MANTA','MAPAS','MARCA','MATAS','MATIZ','MECHA','MEIGA','MELOS','MESES','MEXEU','MIGRA','MIMOS','MINAS','MIRAR','MITOS','MOLAS','MOLDE','MONTA','MORAL','MORNO','MOTOS','MOVEU','MUDAS','MULAS','MUSAS','MUSGO','NABOS','NAIPE','NARRA','NASCE','NATAS','NAVIO','NEGRA','NETOS','NEVES','NICHO','NINFA','NOBRE','NOIVO','NORMA','NOTAR','OBESO','OBRAS','OCASO','OCUPA','ODEIA','OLEOS','OMBRO','ONTEM','OPACO','ORLAS','OUSAR','PAGAS','PAGOS','PALHA','PANDA','PAPAS','PARDO','PARES','PASTA','PATAS','PAVIO','PENAL','PENSA','PERUS','PESCA','PILAR','PINOS','PINTA','PIQUE','PIRES','PISOS','PLENO','POMBA','POSSE','POTES','POUSO','PRADO','PRAGA','PRAZO','PREGA','PRESO','PRIMA','PUNHO','QUERO','RABOS','RAIAS','RALOS','RAMOS','RASGO','RASOS','RATOS','RECUA','REDES','REGAR','REINO','RELVA','REMAR','REMOS','RENDE','RETAS','RICOS','RIGOR','RIMAS','RITMO','RIVAL','RODAR','ROLHA','ROMPE','ROSAS','ROUCO','RUGAS','RUMOS','SABIA','SACAS','SAGAZ','SAIAS','SALDO','SALSA','SECAR','SEDAS','SEIOS','SELAR','SELOS','SENDA','SENHA','SERIA','SERVO','SETOR','SIGLA','SIGNO','SOBRE','SOCOS','SOFRE','SOLAR','SOLOS','SOMAR','SOMOS','SONHA','SOPAS','SOPRO','SORRI','SUADO','SUBIU','SUJAS','SUMIU','SURTO','SUSTO','SUTIL','TACOS','TALHO','TALOS','TAPAS','TEIAS','TELHA','TEMAS','TEMER','TEMIA','TENAZ','TENDA','TENSO','TENTA','TERMO','TERNO','TESTA','TETOS','TINTA','TIPOS','TIRAR','TIROS','TOCAR','TOLDO','TOLOS','TOMAR','TOMBO','TONTO','TOPAR','TOPOS','TORAS','TORCE','TOSCO','TOSSE','TOTEM','TOUCA','TRAGA','TREVA','TRIBO','TROCO','TROPA','TUBOS','TUFOS','TUMBA','TURBO','TURNO','UNIDO','URSOS','USADO','USINA','VACAS','VAGAS','VAGOS','VALSA','VARAS','VASTO','VELAS','VELOZ','VENCE','VENDA','VERBO','VESTE','VIGIA','VINDA','VINDO','VINTE','VIOLA','VISTA','VITAL','VIVAS','VOGAL','VOTAR','ZANGA','ZELOS','ZUNIR'];
 
@@ -229,8 +322,20 @@ function trocarModo(m){
   modoAtual = m;
   document.getElementById('tab-diario').classList.toggle('active', m==='diario');
   document.getElementById('tab-treino').classList.toggle('active', m==='treino');
-  document.getElementById('puzzle-num').textContent = m==='diario' ? ('Desafio #'+(diaIndice()+1)) : 'Modo treino — palavra aleatória';
-  renderTudo();
+  document.getElementById('tab-caotico').classList.toggle('active', m==='caotico');
+
+  const ehSolo = (m==='diario' || m==='treino');
+  document.getElementById('puzzle-num').style.display = ehSolo ? '' : 'none';
+  document.getElementById('board').style.display = ehSolo ? '' : 'none';
+  document.getElementById('keyboard').style.display = ehSolo ? '' : 'none';
+  document.getElementById('aba-caotico').style.display = ehSolo ? 'none' : 'flex';
+
+  if(ehSolo){
+    document.getElementById('puzzle-num').textContent = m==='diario' ? ('Desafio #'+(diaIndice()+1)) : 'Modo treino — palavra aleatória';
+    renderTudo();
+  } else {
+    caosEntrarNaAba();
+  }
 }
 
 /* ══ AVALIAÇÃO DO PALPITE ══ */
@@ -318,7 +423,15 @@ function tratarTecla(k){
 }
 document.addEventListener('keydown', e=>{
   if(document.querySelector('.modal-overlay[style*="flex"]')) return;
+  if(document.activeElement && document.activeElement.tagName==='INPUT') return;
   const k = e.key.toUpperCase();
+  if(modoAtual==='caotico'){
+    if(document.getElementById('caos-jogo').style.display!=='flex') return;
+    if(k==='ENTER') tratarTeclaCaos('ENTER');
+    else if(k==='BACKSPACE') tratarTeclaCaos('BACK');
+    else if(/^[A-Z]$/.test(k)) tratarTeclaCaos(k);
+    return;
+  }
   if(k==='ENTER') tratarTecla('ENTER');
   else if(k==='BACKSPACE') tratarTecla('BACK');
   else if(/^[A-Z]$/.test(k)) tratarTecla(k);
@@ -496,8 +609,317 @@ function renderTudo(){
   }
 }
 
+/* ══ MODO CAÓTICO (online, 2 jogadores, chat travado fora do seu turno) ══ */
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+const TIMEOUT_CAOS_MS = 5*60*1000;
+let meuNomeCaos = localStorage.getItem('termo_nome_caos') || null;
+let salaCaos = null, meuNumeroCaos = null, listenerCaos = null, estadoSalaCaos = null;
+let caosBloqueado = false, atualCaos = '';
+let timerInatividadeCaos = null;
+
+function sortearPalavraCaos(){ return PALAVRAS[Math.floor(Math.random()*PALAVRAS.length)]; }
+function novoEstadoSalaCaos(nome1){
+  return { palavra: sortearPalavraCaos(), nome1, nome2:'', jogador2Entrou:false, turno:1, historico:[], gameOver:false, venceu:null, seq:0, ts:Date.now() };
+}
+function caosNormalizarEstado(raw){
+  const hist = Array.isArray(raw.historico) ? raw.historico : Object.values(raw.historico||{});
+  return {
+    palavra: raw.palavra||'', nome1: raw.nome1||'', nome2: raw.nome2||'',
+    jogador2Entrou: !!raw.jogador2Entrou, turno: Number(raw.turno)||1,
+    historico: hist, gameOver: !!raw.gameOver,
+    venceu: raw.venceu===true ? true : (raw.venceu===false ? false : null),
+    seq: Number(raw.seq)||0, ts: raw.ts||0
+  };
+}
+function podeAgirCaos(){
+  return !!(estadoSalaCaos && !estadoSalaCaos.gameOver && estadoSalaCaos.jogador2Entrou && estadoSalaCaos.turno===meuNumeroCaos);
+}
+
+function caosShow(qual){
+  ['nome','lobby','aguardando','jogo'].forEach(id=>{
+    document.getElementById('caos-'+id).style.display = (id===qual) ? 'flex' : 'none';
+  });
+}
+function caosEntrarNaAba(){
+  if(salaCaos && estadoSalaCaos){
+    caosShow(estadoSalaCaos.jogador2Entrou ? 'jogo' : 'aguardando');
+    if(estadoSalaCaos.jogador2Entrou) caosRenderTudo();
+    return;
+  }
+  caosMostrarNomeOuLobby();
+}
+function caosMostrarNomeOuLobby(){
+  if(meuNomeCaos){ document.getElementById('caos-nome-display').textContent = meuNomeCaos; caosShow('lobby'); }
+  else caosShow('nome');
+}
+function caosTrocarNome(){ meuNomeCaos=null; localStorage.removeItem('termo_nome_caos'); caosShow('nome'); document.getElementById('caos-input-nome').value=''; }
+
+document.getElementById('caos-btn-nome').addEventListener('click',()=>{
+  const n = document.getElementById('caos-input-nome').value.trim();
+  if(!n){ alert('Digite seu nome.'); return; }
+  meuNomeCaos = n; localStorage.setItem('termo_nome_caos', n);
+  caosMostrarNomeOuLobby();
+});
+document.getElementById('caos-input-nome').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('caos-btn-nome').click(); });
+document.getElementById('caos-input-codigo').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('caos-btn-entrar').click(); });
+
+document.getElementById('caos-btn-criar').addEventListener('click', async ()=>{
+  if(!precisaFirebaseCaos()) return;
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const codigo = Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  caosShow('aguardando');
+  document.getElementById('caos-aguardando-msg').textContent = 'Criando sala...';
+  document.getElementById('caos-codigo-display').textContent = '';
+  const ini = novoEstadoSalaCaos(meuNomeCaos);
+  try{
+    await dbCaos.ref('caos-salas/'+codigo).set(ini);
+  }catch(e){
+    console.error('Erro ao criar sala:', e);
+    alert('Não deu pra criar a sala agora. Tenta de novo em instantes.');
+    caosShow('lobby');
+    return;
+  }
+  salaCaos = codigo; meuNumeroCaos = 1;
+  document.getElementById('caos-aguardando-msg').textContent = 'Aguardando seu parceiro entrar...';
+  document.getElementById('caos-codigo-display').textContent = codigo;
+  caosEscutarSala(codigo);
+});
+
+document.getElementById('caos-btn-entrar').addEventListener('click', async ()=>{
+  if(!precisaFirebaseCaos()) return;
+  const codigo = document.getElementById('caos-input-codigo').value.trim().toUpperCase();
+  if(codigo.length!==4){ alert('Digite um código de 4 letras.'); return; }
+  try{
+    const snap = await dbCaos.ref('caos-salas/'+codigo).get();
+    if(!snap.exists()){ alert('Sala não encontrada.'); return; }
+    if(snap.val().jogador2Entrou){ alert('Sala cheia!'); return; }
+    caosShow('aguardando');
+    document.getElementById('caos-aguardando-msg').textContent = 'Entrando...';
+    document.getElementById('caos-codigo-display').textContent = '';
+    await dbCaos.ref('caos-salas/'+codigo).update({jogador2Entrou:true, nome2:meuNomeCaos});
+  }catch(e){
+    console.error('Erro ao entrar na sala:', e);
+    alert('Não deu pra entrar na sala agora. Confere o código e tenta de novo.');
+    caosShow('lobby');
+    return;
+  }
+  salaCaos = codigo; meuNumeroCaos = 2;
+  caosEscutarSala(codigo);
+});
+
+document.getElementById('caos-codigo-display').addEventListener('click',()=>{
+  const c = document.getElementById('caos-codigo-display').textContent;
+  if(!c) return;
+  navigator.clipboard?.writeText(c).then(()=>mostrarToast('Copiado!'));
+});
+
+function caosResetarTimerInatividade(){
+  if(timerInatividadeCaos) clearTimeout(timerInatividadeCaos);
+  timerInatividadeCaos = setTimeout(()=>{
+    if(salaCaos && dbCaos) dbCaos.ref('caos-salas/'+salaCaos).remove();
+  }, TIMEOUT_CAOS_MS);
+}
+function caosPararTimer(){ if(timerInatividadeCaos){ clearTimeout(timerInatividadeCaos); timerInatividadeCaos=null; } }
+
+function caosEscutarSala(codigo){
+  if(listenerCaos) listenerCaos();
+  const ref = dbCaos.ref('caos-salas/'+codigo);
+  ref.on('value', snap=>{
+    if(!snap.exists()){
+      const estavaJogando = document.getElementById('caos-jogo').style.display==='flex' || document.getElementById('caos-aguardando').style.display==='flex';
+      caosPararTimer();
+      if(listenerCaos){ listenerCaos(); listenerCaos=null; }
+      salaCaos=null; meuNumeroCaos=null; estadoSalaCaos=null; atualCaos='';
+      caosShow('lobby');
+      if(estavaJogando) alert('A sala foi encerrada (parceiro saiu ou ficou 5 min sem uso).');
+      return;
+    }
+    const raw = snap.val();
+    const s = caosNormalizarEstado(raw);
+    if(estadoSalaCaos && s.seq>0 && s.seq<estadoSalaCaos.seq) return;
+    estadoSalaCaos = s;
+    if(s.jogador2Entrou){
+      caosShow('jogo');
+      caosRenderTudo();
+      if(!s.gameOver) caosResetarTimerInatividade(); else caosPararTimer();
+    } else if(meuNumeroCaos===1){
+      caosShow('aguardando');
+    }
+  });
+  listenerCaos = ()=>ref.off();
+}
+
+async function caosSair(){
+  caosPararTimer();
+  if(listenerCaos){ listenerCaos(); listenerCaos=null; }
+  if(salaCaos && dbCaos){ try{ await dbCaos.ref('caos-salas/'+salaCaos).remove(); }catch(e){} }
+  salaCaos=null; meuNumeroCaos=null; estadoSalaCaos=null; atualCaos='';
+  caosShow('lobby');
+}
+document.getElementById('caos-btn-sair').addEventListener('click', caosSair);
+document.getElementById('caos-btn-cancelar').addEventListener('click', caosSair);
+
+/* ══ TECLADO DO MODO CAÓTICO ══ */
+function montarTecladoCaos(){
+  const kb = document.getElementById('caos-keyboard'); kb.innerHTML='';
+  LINHAS_TECLADO.forEach(linha=>{
+    const row = document.createElement('div'); row.className='krow';
+    linha.forEach(k=>{
+      const btn = document.createElement('button'); btn.type='button'; btn.dataset.key=k;
+      if(k==='ENTER'){ btn.className='key wide'; btn.textContent='ENTER'; }
+      else if(k==='BACK'){ btn.className='key wide'; btn.textContent='⌫'; }
+      else { btn.className='key'; btn.textContent=k; }
+      btn.addEventListener('click',()=>tratarTeclaCaos(k));
+      row.appendChild(btn);
+    });
+    kb.appendChild(row);
+  });
+}
+function atualizarTecladoCaos(){
+  const s = estadoSalaCaos;
+  const melhor = {};
+  const prioridade = {absent:0,present:1,correct:2};
+  s.historico.filter(e=>e.tipo==='chute').forEach(entry=>{
+    entry.valor.split('').forEach((l,i)=>{
+      const r = entry.resultado[i];
+      if(!melhor[l] || prioridade[r]>prioridade[melhor[l]]) melhor[l]=r;
+    });
+  });
+  document.querySelectorAll('#caos-keyboard .key').forEach(btn=>{
+    const k = btn.dataset.key;
+    btn.classList.remove('correct','present','absent');
+    if(melhor[k]) btn.classList.add(melhor[k]);
+  });
+}
+function tratarTeclaCaos(k){
+  if(caosBloqueado || !podeAgirCaos()) return;
+  if(k==='ENTER'){ enviarChuteCaos(); return; }
+  if(k==='BACK'){ atualCaos = atualCaos.slice(0,-1); renderCaosLog(); return; }
+  if(/^[A-Z]$/.test(k) && atualCaos.length<5){ atualCaos += k; renderCaosLog(); }
+}
+
+/* ══ AÇÕES: CHUTE OU DICA ══ */
+function caosProximoEstadoComEntrada(entrada){
+  const novo = JSON.parse(JSON.stringify(estadoSalaCaos));
+  novo.historico.push(entrada);
+  novo.turno = meuNumeroCaos===1 ? 2 : 1;
+  novo.seq = (estadoSalaCaos.seq||0) + 1;
+  novo.ts = Date.now();
+  return novo;
+}
+function caosSalvarEstado(novo){
+  caosBloqueado = true;
+  estadoSalaCaos = novo;
+  dbCaos.ref('caos-salas/'+salaCaos).set(novo)
+    .then(()=>{ caosBloqueado=false; })
+    .catch(()=>{ caosBloqueado=false; mostrarToast('Erro ao enviar, tenta de novo'); });
+}
+
+function enviarChuteCaos(){
+  if(caosBloqueado || !podeAgirCaos()) return;
+  if(atualCaos.length<5){ mostrarToast('Palavra incompleta'); return; }
+  if(!PALAVRAS_VALIDAS.has(atualCaos)){ mostrarToast('Palavra não encontrada na lista'); return; }
+  const resultado = avaliarPalpite(atualCaos, estadoSalaCaos.palavra);
+  const venceu = atualCaos === estadoSalaCaos.palavra;
+  const novo = caosProximoEstadoComEntrada({jogador:meuNumeroCaos, tipo:'chute', valor:atualCaos, resultado});
+  if(venceu){ novo.gameOver=true; novo.venceu=true; }
+  else if(novo.historico.length>=6){ novo.gameOver=true; novo.venceu=false; }
+  atualCaos = '';
+  caosSalvarEstado(novo);
+}
+function enviarDicaCaos(){
+  if(caosBloqueado || !podeAgirCaos()) return;
+  const input = document.getElementById('caos-dica-input');
+  const texto = input.value.trim();
+  if(!texto){ mostrarToast('Escreva uma dica antes de enviar'); return; }
+  const novo = caosProximoEstadoComEntrada({jogador:meuNumeroCaos, tipo:'dica', valor:texto});
+  if(novo.historico.length>=6){ novo.gameOver=true; novo.venceu=false; }
+  input.value=''; atualCaos='';
+  caosSalvarEstado(novo);
+}
+document.getElementById('caos-btn-dica').addEventListener('click', enviarDicaCaos);
+document.getElementById('caos-dica-input').addEventListener('keydown', e=>{ if(e.key==='Enter') enviarDicaCaos(); });
+
+function caosNovaRodada(){
+  if(!salaCaos || meuNumeroCaos!==1) return;
+  const novo = novoEstadoSalaCaos(estadoSalaCaos.nome1);
+  novo.nome2 = estadoSalaCaos.nome2;
+  novo.jogador2Entrou = true;
+  novo.seq = (estadoSalaCaos.seq||0) + 1;
+  dbCaos.ref('caos-salas/'+salaCaos).set(novo);
+}
+
+/* ══ RENDER DO MODO CAÓTICO ══ */
+function renderCaosLog(){
+  const s = estadoSalaCaos;
+  const log = document.getElementById('caos-log');
+  log.innerHTML = '';
+  s.historico.forEach(entry=>{
+    if(entry.tipo==='chute'){
+      const row = document.createElement('div'); row.className='row';
+      entry.valor.split('').forEach((l,i)=>{
+        const tile = document.createElement('div'); tile.className='tile '+entry.resultado[i]; tile.textContent=l;
+        row.appendChild(tile);
+      });
+      log.appendChild(row);
+    } else {
+      const bubble = document.createElement('div');
+      bubble.className = 'dica-bubble'+(entry.jogador===2?' j2':'');
+      const nomeAutor = entry.jogador===1 ? s.nome1 : s.nome2;
+      bubble.innerHTML = `<span class="autor">💬 ${escapeHtml(nomeAutor)}</span>${escapeHtml(entry.valor)}`;
+      log.appendChild(bubble);
+    }
+  });
+  if(!s.gameOver && s.turno===meuNumeroCaos){
+    const row = document.createElement('div'); row.className='row';
+    for(let i=0;i<5;i++){
+      const tile = document.createElement('div'); tile.className='tile'+(atualCaos[i]?' filled':'');
+      tile.textContent = atualCaos[i]||'';
+      row.appendChild(tile);
+    }
+    log.appendChild(row);
+  }
+  log.scrollTop = log.scrollHeight;
+}
+function caosRenderTudo(){
+  const s = estadoSalaCaos;
+  document.getElementById('caos-status').innerHTML = `Sala <b style="color:var(--present)">${salaCaos}</b> · ${escapeHtml(s.nome1)} 🆚 ${escapeHtml(s.nome2)}`;
+  renderCaosLog();
+  atualizarTecladoCaos();
+  const bar = document.getElementById('caos-turno-bar');
+  const dicaRow = document.getElementById('caos-dica-row');
+  const kb = document.getElementById('caos-keyboard');
+  const fimBtns = document.getElementById('caos-fim-btns');
+  const restantes = 6 - s.historico.length;
+  fimBtns.innerHTML = '';
+  if(s.gameOver){
+    bar.innerHTML = s.venceu
+      ? `🏆 Acertaram juntos! A palavra era <b>${escapeHtml(s.palavra)}</b>`
+      : `😢 Acabaram as tentativas. A palavra era <b>${escapeHtml(s.palavra)}</b>`;
+    dicaRow.style.opacity='.4'; dicaRow.style.pointerEvents='none';
+    kb.style.opacity='.4'; kb.style.pointerEvents='none';
+    if(meuNumeroCaos===1){
+      const btnR = document.createElement('button'); btnR.className='btn btn-primary'; btnR.style.flex='1'; btnR.textContent='🔄 Nova rodada';
+      btnR.onclick = caosNovaRodada;
+      fimBtns.appendChild(btnR);
+    }
+  } else {
+    const meuTurno = s.turno===meuNumeroCaos;
+    const nomeOutro = meuNumeroCaos===1 ? s.nome2 : s.nome1;
+    bar.innerHTML = meuTurno
+      ? `🎯 Sua vez! Chute ou mande uma dica — restam ${restantes}/6`
+      : `🤐 Vez de <b>${escapeHtml(nomeOutro)}</b>... aguarde (restam ${restantes}/6)`;
+    dicaRow.style.opacity = meuTurno ? '1' : '.4';
+    dicaRow.style.pointerEvents = meuTurno ? 'auto' : 'none';
+    kb.style.opacity = meuTurno ? '1' : '.4';
+    kb.style.pointerEvents = meuTurno ? 'auto' : 'none';
+  }
+}
+
 /* ══ INIT ══ */
 montarTeclado();
+montarTecladoCaos();
 carregarDiario();
 carregarTreino();
 document.getElementById('puzzle-num').textContent = 'Desafio #'+(diaIndice()+1);
