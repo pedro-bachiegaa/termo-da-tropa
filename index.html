@@ -22,12 +22,13 @@
 }
 html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:'Caveat',cursive;display:flex;flex-direction:column;align-items:center;transition:background .3s,color .3s}
 .wrapper{width:100%;max-width:480px;padding:0 14px 30px;display:flex;flex-direction:column;align-items:center;gap:12px}
-header{width:100%;display:flex;align-items:center;justify-content:space-between;padding-top:14px}
-.title-wrap{text-align:center;flex:1}
-.title{font-size:clamp(1.6rem,7vw,2.3rem);font-weight:800;line-height:1.1}
+header{width:100%;display:flex;align-items:flex-start;padding-top:14px;gap:6px}
+.title-wrap{text-align:center;flex:1;min-width:0}
+.title{font-size:clamp(1.3rem,6.5vw,2.3rem);font-weight:800;line-height:1.1}
 .subtitle{font-size:.85rem;color:var(--subtext)}
-.icon-btn{background:var(--paper);border:1.5px solid var(--line-mini);border-radius:4px;padding:6px 9px;font-size:.95rem;cursor:pointer;color:var(--subtext);font-family:'Caveat',cursive}
-.header-btns{display:flex;gap:6px}
+.icon-btn{background:var(--paper);border:1.5px solid var(--line-mini);border-radius:4px;padding:6px 9px;font-size:.95rem;cursor:pointer;color:var(--subtext);font-family:'Caveat',cursive;flex-shrink:0}
+.icon-btn.spacer{visibility:hidden}
+.header-btns{display:flex;gap:6px;flex-shrink:0}
 .tabs{width:100%;display:flex;border-bottom:2.5px solid var(--ink)}
 .tab-btn{flex:1;padding:8px 0;font-size:1.05rem;font-weight:700;background:none;border:none;color:var(--subtext);cursor:pointer;font-family:'Caveat',cursive;position:relative}
 .tab-btn.active{color:var(--ink)}
@@ -83,7 +84,7 @@ header{width:100%;display:flex;align-items:center;justify-content:space-between;
 <body>
 <div class="wrapper">
 <header>
-  <div class="header-btns"><button class="icon-btn" id="btn-regras">❓</button></div>
+  <div class="header-btns"><button class="icon-btn" id="btn-regras">❓</button><button class="icon-btn spacer" aria-hidden="true" tabindex="-1">🎨</button></div>
   <div class="title-wrap">
     <div class="title">Termo da Tropa</div>
     <div class="subtitle">Adivinhe a palavra em 6 tentativas</div>
